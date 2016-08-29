@@ -3,6 +3,7 @@ package com.example.saket.camcapture;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -17,8 +18,6 @@ import java.io.File;
 public class MainActivity extends AppCompatActivity
 {
     Button btnCamera;
-    Context context;
-
     private static final int PICK_FROM_CAMERA = 0;
     private static final int VIDEO_CAPTURE = 102;
 
@@ -28,9 +27,8 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        context = getBaseContext();
         btnCamera = (Button) findViewById(R.id.btncamera);
-        
+
         btnCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -40,6 +38,7 @@ public class MainActivity extends AppCompatActivity
                 File image = new File(imagesFolder, "image_001.jpg");
                 Uri uriSavedImage = Uri.fromFile(image);
                 imageIntent.putExtra(MediaStore.EXTRA_OUTPUT, uriSavedImage);
+                imageIntent.putExtra(MediaStore.EXTRA_SIZE_LIMIT,1098304L);
                 startActivityForResult(imageIntent,PICK_FROM_CAMERA);
             }
         });
@@ -56,7 +55,11 @@ public class MainActivity extends AppCompatActivity
                 Uri videoUri = Uri.fromFile(mediaFile);
 
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, videoUri);
-                startActivityForResult(intent, VIDEO_CAPTURE);
+                intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY,0);
+                intent.putExtra(MediaStore.EXTRA_DURATION_LIMIT,30);
+                intent.putExtra(MediaStore.EXTRA_SIZE_LIMIT, 10380902L);
+
+                startActivityForResult(intent,VIDEO_CAPTURE);
 
                 return false;
             }
@@ -78,8 +81,8 @@ public class MainActivity extends AppCompatActivity
 
         if (requestCode == PICK_FROM_CAMERA) {
             if (resultCode == RESULT_OK) {
-                Toast.makeText(this, "Image saved to:\n" +
-                        data.getData(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Image saved"
+                        , Toast.LENGTH_SHORT).show();
             }
              else {
                 Toast.makeText(this, "Failed to save image",
