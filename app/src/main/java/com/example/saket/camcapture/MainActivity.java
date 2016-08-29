@@ -1,6 +1,7 @@
 package com.example.saket.camcapture;
 
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -13,6 +14,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -53,6 +55,21 @@ public class MainActivity extends AppCompatActivity
                     imageIntent.putExtra(MediaStore.EXTRA_SCREEN_ORIENTATION, 0);
                     imageIntent.putExtra(MediaStore.EXTRA_SIZE_LIMIT, 1098304L);
                     startActivityForResult(imageIntent, PICK_FROM_CAMERA);
+                    /*imageIntent.putExtra("crop", "true");
+                    imageIntent.putExtra("aspectX", 0);
+                    imageIntent.putExtra("aspectY", 0);
+                    imageIntent.putExtra("outputX", 200);
+                    imageIntent.putExtra("outputY", 150);
+
+                    try {
+
+                        imageIntent.putExtra("return-data", true);
+                        startActivityForResult(imageIntent, PICK_FROM_CAMERA);
+
+                    } catch (ActivityNotFoundException e) {
+                        Log.d("socketttt","ghggfhghg");
+                    }*/
+
 
                 }
                 requestStoragePermission();
@@ -160,7 +177,7 @@ public class MainActivity extends AppCompatActivity
 
                 Toast.makeText(this,"Permission granted now you can read the storage",Toast.LENGTH_LONG).show();
             }else{
-                Toast.makeText(this,"Oops you just denied the permission",Toast.LENGTH_LONG).show();
+                Toast.makeText(this,"Oops you just denied STORAGE_PERMISSION_CODE the permission",Toast.LENGTH_LONG).show();
             }
         }
         if(requestCode == CAPTURE_VIDEO_OUTPUT){
@@ -169,7 +186,7 @@ public class MainActivity extends AppCompatActivity
 
                 Toast.makeText(this,"Permission granted now you can capture video",Toast.LENGTH_LONG).show();
             }else{
-                Toast.makeText(this,"Oops you just denied the permission",Toast.LENGTH_LONG).show();
+                Toast.makeText(this,"Oops you just denied the CAPTURE_VIDEO_OUTPUT permission",Toast.LENGTH_LONG).show();
             }
         }
         if(requestCode == RECORD_AUDIO_CODE){
@@ -178,7 +195,7 @@ public class MainActivity extends AppCompatActivity
 
                 Toast.makeText(this,"Permission granted now you can record audio",Toast.LENGTH_LONG).show();
             }else{
-                Toast.makeText(this,"Oops you just denied the permission",Toast.LENGTH_LONG).show();
+                Toast.makeText(this,"Oops you just denied the RECORD_AUDIO_CODE permission",Toast.LENGTH_LONG).show();
             }
         }
     }
