@@ -14,8 +14,9 @@
         android:layout_height="match_parent"
         android:text="OPEN CAMERA"
         android:gravity="center"
-        style="@style/Base.TextAppearance.AppCompat.Large"
+
         android:id="@+id/btncamera"
+
         />
 
 

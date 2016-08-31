@@ -2,10 +2,15 @@ package com.example.saket.camcapture;
 
 
 import android.content.ActivityNotFoundException;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.BitmapRegionDecoder;
+import android.graphics.Rect;
+import android.media.Image;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -18,79 +23,64 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
+
+
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.jar.Manifest;
 
 
 public class MainActivity extends AppCompatActivity
 {
+    Uri uriSavedImage,mfinal;
+    ContentValues values;
+
+
     Button btnCamera;
     private static final int PICK_FROM_CAMERA = 0;
     private static final int VIDEO_CAPTURE = 102;
     private int STORAGE_PERMISSION_CODE = 23;
     private int RECORD_AUDIO_CODE = 23;
     private int CAPTURE_VIDEO_OUTPUT = 23;
-
+    private CompressImage compressImage;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        btnCamera = (Button) findViewById(R.id.btncamera);
+
+        btnCamera=(Button) findViewById(R.id.btncamera);
 
         btnCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                compressImage = new CompressImage();
+                Intent i = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                startActivityForResult(i, PICK_FROM_CAMERA);
 
-                if(isWriteStorageAllowed()) {
-
-
-                    Intent imageIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                    File imagesFolder = new File(Environment.getExternalStorageDirectory(), "CamCapture");
-                    imagesFolder.mkdirs(); // <----
-                    File image = new File(imagesFolder, "image_001.jpg");
-                    Uri uriSavedImage = Uri.fromFile(image);
-                    imageIntent.putExtra(MediaStore.EXTRA_OUTPUT, uriSavedImage);
-                    imageIntent.putExtra(MediaStore.EXTRA_SCREEN_ORIENTATION, 0);
-                    imageIntent.putExtra(MediaStore.EXTRA_SIZE_LIMIT, 1098304L);
-                    startActivityForResult(imageIntent, PICK_FROM_CAMERA);
-                    /*imageIntent.putExtra("crop", "true");
-                    imageIntent.putExtra("aspectX", 0);
-                    imageIntent.putExtra("aspectY", 0);
-                    imageIntent.putExtra("outputX", 200);
-                    imageIntent.putExtra("outputY", 150);
-
-                    try {
-
-                        imageIntent.putExtra("return-data", true);
-                        startActivityForResult(imageIntent, PICK_FROM_CAMERA);
-
-                    } catch (ActivityNotFoundException e) {
-                        Log.d("socketttt","ghggfhghg");
-                    }*/
-
-
-                }
-                requestStoragePermission();
-
-                /*imageIntent.putExtra(MediaStore.EXTRA_OUTPUT, uriSavedImage);
-                imageIntent.putExtra("crop", "true");
-                imageIntent.putExtra("outputX", 150);
-                imageIntent.putExtra("outputY", 150);
-                imageIntent.putExtra("aspectX", 1);
-                imageIntent.putExtra("aspectY", 1);
-                imageIntent.putExtra("scale", true);
-                imageIntent.putExtra("outputFormat",
-                        Bitmap.CompressFormat.JPEG.toString());*/
-                //startActivityForResult(imageIntent,PICK_FROM_CAMERA);
+//
+//                    Intent imageIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+//                    File imagesFolder = new File(Environment.getExternalStorageDirectory(), "CamCapture");
+//                    imagesFolder.mkdirs(); // <----
+//                    File image = new File(imagesFolder, "image_001.jpeg");
+//                    uriSavedImage = Uri.fromFile(image);
+//
+//
+//                imageIntent.putExtra(MediaStore.EXTRA_OUTPUT, mfinal);
+//                    startActivityForResult(imageIntent, PICK_FROM_CAMERA);
 
             }
         });
 
+
+
         btnCamera.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
+
                 if(isWriteStorageAllowed()||isCaptureVideoOutput()||isRecordAudioCode()) {
                     File mediaFile =
                             new File(Environment.getExternalStorageDirectory().getAbsolutePath()
@@ -107,9 +97,9 @@ public class MainActivity extends AppCompatActivity
 
                     startActivityForResult(intent, VIDEO_CAPTURE);
                 }
-                requestStoragePermission();
-                requestCaptureVideoOutput();
-                requestRecordAudio();
+               // requestStoragePermission();
+                //requestCaptureVideoOutput();
+                //requestRecordAudio();
 
                 return true;
             }
@@ -215,15 +205,48 @@ public class MainActivity extends AppCompatActivity
         }
 
         if (requestCode == PICK_FROM_CAMERA) {
-            if (resultCode == RESULT_OK) {
-                Toast.makeText(this, "Image saved"
-                        , Toast.LENGTH_SHORT).show();
+                    Bitmap photo = (Bitmap) data.getExtras().get("data");
+
+               Uri selectedImageUri = getImageUri(getApplicationContext(), photo);
+                    Uri newuri = Uri.parse("file://"+compressImage.compressImage(selectedImageUri.toString(), this));
+            try {
+                Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), newuri);
+                createDirectoryAndSaveFile(bitmap,"hellobitch");
+                Toast.makeText(MainActivity.this,"Create and save dire",Toast.LENGTH_SHORT).show();
+
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-             else {
-                Toast.makeText(this, "Failed to save image",
-                        Toast.LENGTH_SHORT).show();
-            }
+
         }
     }
+    private void createDirectoryAndSaveFile(Bitmap imageToSave, String fileName) {
+
+        File direct = new File(Environment.getExternalStorageDirectory() + "/Directory");
+        if (!direct.exists()) {
+            File wallpaperDirectory = new File("/sdcard/DirName/");
+            wallpaperDirectory.mkdirs();
+        }
+        File file = new File(new File("/sdcard/DirName/"), fileName);
+        if (file.exists()) {
+            file.delete();
+        }
+        try {
+
+            FileOutputStream out = new FileOutputStream(file);
+            imageToSave.compress(Bitmap.CompressFormat.JPEG, 100, out);
+            out.flush();
+            out.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public Uri getImageUri(Context inContext, Bitmap inImage) {
+        String path = MediaStore.Images.Media.insertImage(inContext.getContentResolver(), inImage, "Title", null);
+        return Uri.parse(path);
+    }
 }
+
 
